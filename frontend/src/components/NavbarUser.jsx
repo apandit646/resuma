@@ -1,3 +1,4 @@
+/* eslint-disable react/prop-types */
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { LogIn, UserPlus, Menu, X } from "lucide-react";

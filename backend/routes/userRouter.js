@@ -16,6 +16,7 @@ router.post('/', async (req, res) => {
   try {
     if (password !== confirmPassword) return res.status(400).json({ error: 'Passwords do not match' });
     const user = new UserLogin({
+      
       firstName,
       lastName,
       email,
