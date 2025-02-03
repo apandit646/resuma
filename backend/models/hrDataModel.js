@@ -2,10 +2,10 @@ const mongoose = require('mongoose');
 
 const hrDataSchema = new mongoose.Schema(
   {
-    user_id: { type: 'string', required: true},
-    companyName: { type: String }, // Corrected type
-    hrName: { type: String }, // Fixed syntax
-    hrEmail: { type: String }, // Fixed syntax
+    user_Id: { type: String ,required: true},
+    companyName: { type: String, required: true}, // Corrected type
+    hrName: { type: String ,required: true}, // Fixed syntax
+    hrEmail: { type: String,required: true }, // Fixed syntax
     phone: { type: String }, // You can add validation if needed
   },
   { timestamps: true } // Moved outside the object

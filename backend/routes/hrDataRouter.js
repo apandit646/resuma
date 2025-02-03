@@ -7,8 +7,9 @@ const router = express.Router();
 
 router.get('/hr/form', authenticateToken, async (req, res) => {
     try {
-        const emailForm = await HR_Form.findOne({ user_Id: req.user.id });
-        console.log(emailForm)
+        const user = req.user
+        console.log(user)
+        const emailForm = await HR_Form.find({ user_Id: req.user.id });
         res.json(emailForm);
     } catch (err) {
         console.error('Error getting HR form:', err);
@@ -19,12 +20,19 @@ router.get('/hr/form', authenticateToken, async (req, res) => {
 });
 router.post('/hr/create', authenticateToken, async (req, res) => {
     try {
-        const body = req.body;
+       const  {formData} = req.body;
         const user_Id = req.user.id;
-        console.log(user_Id,body);
-        const newEmailForm = new HR_Form({ user_Id:user_Id,formData});
-        await newEmailForm.save();
-        res.json(newEmailForm);
+        const newHRForm = new HR_Form({ 
+            user_Id, 
+            companyName:formData.companyName, // Corrected type
+            hrName: formData.hrName, // Fixed syntax
+            hrEmail:formData.hrEmail, // Fixed syntax
+            phone:formData.phone, // Fixed });
+
+        });
+        await newHRForm.save();
+        res.json(newHRForm);
+     
     } catch (err) {
         console.error('Error creating HR form:', err);
         res.status(500).json({ success: false, message: 'Error in creating HR form', error: err.message });
@@ -51,6 +59,7 @@ router.delete('/hr/delete/:id', authenticateToken, async (req, res) => {
 
     try {
         const id = req.params.id;
+        console.log('delete', id);
         await HR_Form.findByIdAndDelete(id);
         res.json({ success: true, message: 'HR form deleted successfully' });
     } catch (err) {

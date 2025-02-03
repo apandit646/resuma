@@ -1,18 +1,57 @@
-import { useState } from "react";
+/* eslint-disable react-hooks/exhaustive-deps */
+import { useEffect, useState } from "react";
 import { PencilIcon, TrashIcon, EyeIcon } from "@heroicons/react/outline"; // Import icons correctly
 
 const HR = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const [hrList, setHRList] = useState([
-    { id: 1, companyName: 'Tech Corp', hrName: 'John Doe', email: 'john@techcorp.com', phone: '123-456-7890' },
-    { id: 2, companyName: 'Dev Inc', hrName: 'Jane Smith', email: 'jane@devinc.com', phone: '098-765-4321' },
-  ]);
+  const [hrList, setHRList] = useState([]);
   const [formData, setFormData] = useState({
     companyName: '',
     hrName: '',
     hrEmail: '',
     phone: '',
   });
+
+  useEffect(() => {
+    fetchData();
+  }, [setHRList]); // Add dependencies if needed
+
+  const fetchData = async () => {
+    try {
+      const token = localStorage.getItem("authToken");
+      if (!token) {
+        console.error("No authentication token found");
+        return;
+      }
+
+      const response = await fetch("http://localhost:8000/hr/form", {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+
+      const data = await response.json();
+     
+
+      if (Array.isArray(data)) {
+        setHRList(data);
+      } else if (data) {
+        setHRList([data]);
+      } else {
+        setHRList([]);
+      }
+    } catch (error) {
+      console.error("Error fetching formats:", error.message);
+      setHRList([]);
+    }
+  };
+
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -25,7 +64,7 @@ const HR = () => {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({formData: formData}),
+        body: JSON.stringify({ formData }),
       });
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
@@ -38,18 +77,41 @@ const HR = () => {
         phone: '',
       });
 
-    }catch(e) {
+    } catch (e) {
       alert(`Error saving HR data: ${e.message}`);
     }
-    
+
   };
 
-  const handleDelete = (id) => {
+  const handleDelete = async(id) => {
+    console.log(`Deleting ${id}`);
+    // Implement your API call to delete the HR data here
+    const token = localStorage.getItem('authToken'); // Get the user's authentication token from localStorage
+    try {
+      const response = await fetch(`http://localhost:8000/hr/delete/${id}`, {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      alert("HR data deleted successfully!");
+    } catch (e) {
+      alert(`Error deleting HR data: ${e.message}`);
+    }
+
+    // Remove the deleted HR from the list
+    setHRList(hrList.filter(hr => hr.id!== id));
     setHRList(hrList.filter(hr => hr.id !== id));
+
   };
 
   const handleEdit = (hr) => {
     setFormData(hr);
+
     setIsOpen(true);
   };
 
@@ -92,7 +154,7 @@ const HR = () => {
           </thead>
           <tbody className="divide-y divide-gray-200">
             {hrList.map((hr) => (
-              <tr key={hr.id} className="hover:bg-gray-50">
+              <tr key={hr._Id} className="hover:bg-gray-50">
                 <td className="px-6 py-4 whitespace-nowrap">{hr.companyName}</td>
                 <td className="px-6 py-4 whitespace-nowrap">{hr.hrName}</td>
                 <td className="px-6 py-4 whitespace-nowrap">{hr.hrEmail}</td>
@@ -111,7 +173,7 @@ const HR = () => {
                     <PencilIcon className="h-5 w-5" />
                   </button>
                   <button
-                    onClick={() => handleDelete(hr.id)}
+                    onClick={() => handleDelete(hr._Id)}
                     className="text-red-600 hover:text-red-800"
                   >
                     <TrashIcon className="h-5 w-5" />
