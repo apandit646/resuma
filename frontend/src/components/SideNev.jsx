@@ -1,4 +1,4 @@
-import { Home, User, HelpCircle, Mail } from 'lucide-react';
+import { Home, User, HelpCircle, LogOut, Mail } from 'lucide-react';
 import { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 
@@ -6,7 +6,7 @@ const SideNavbar = () => {
   const [isOpen, setIsOpen] = useState(true);
   const navigate = useNavigate();
   const location = useLocation();
-
+  
 
   const menuItems = [
     { title: 'Home', icon: Home, path: '/home' },
@@ -14,8 +14,8 @@ const SideNavbar = () => {
     { title: 'Create Profile', icon: User, path: '/profile/create' },
     { title: 'Email Format', icon: Mail, path: '/format_email' },
     { title: 'HR', icon: HelpCircle, path: '/hr' },
-   
-   
+    { title: 'Help', icon: HelpCircle, path: '/help' },
+    { title: 'Logout', icon: LogOut, path: '/logout'},
   ];
 
   const handleNavigation = (path) => {
