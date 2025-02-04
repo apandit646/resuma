@@ -30,18 +30,9 @@ router.post('/profile/create', authenticateToken, upload.single('resume'), async
   // console.log('user:', req.user) // Log to check file data
 
   const {
-    firstName,
-    lastName,
+    fullname,
     email,
     phone,
-    address,
-    city,
-    state,
-    zipCode,
-    programmingLanguages,
-    technologies,
-    skills,
-    experiences,
   } = req.body;
 
   try {
@@ -59,38 +50,17 @@ router.post('/profile/create', authenticateToken, upload.single('resume'), async
       return res.status(500).json({ error: error.message });
     }
 
-    // Generate signed URL (if the bucket is private)
-    // const { data: signedUrlData, error: signedUrlError } = await supabase.storage
-    //   .from('pdfurl')
-    //   .createSignedUrl(req.file.originalname, 60 * 60); // 1-hour validity
-
-    // const url = String(signedUrlData.signedUrl)
-    // console.log(url)
-    console.log(req.file.originalname)
     const namePDF = req.file.originalname
     const fileUrl = supabase.storage.from('pdfurl').getPublicUrl(namePDF);
-
     console.log('File URL:', fileUrl.data.publicUrl);
-  
     const profile = new Profile({
       user_Id: req.user.id,
-      firstName,
-      lastName,
+      fullname,  
       email,
       phone,
-      address,
-      city,
-      state,
-      zipCode,
-      programmingLanguages,
-      technologies,
-      skills,
-      experiences,
       resume: fileUrl.data.publicUrl,
     });
     await profile.save();
-
-
     // Continue with profile creation logic
     res.status(201).json({ message: 'Resume uploaded successfully', data });
 
@@ -99,6 +69,16 @@ router.post('/profile/create', authenticateToken, upload.single('resume'), async
     return res.status(500).json({ error: 'Error uploading resume to Backblaze' });
   }
 });
+router.get('/profile', authenticateToken, async(req, res) => {
+ try {
+   const profiles = await Profile.find({ user_Id: req.user.id });
+   res.json(profiles);
+  
+ } catch (error) {
+  console.error('Error fetching profile:', error);
+  
+ }
+})
 
 
 module.exports = router;

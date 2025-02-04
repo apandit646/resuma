@@ -4,18 +4,9 @@ import { Upload } from 'lucide-react';
 
 const UserForm = () => {
   const [formData, setFormData] = useState({
-    firstName: '',
-    lastName: '',
+    fullname: '',
     email: '',
-    phoneNumber: '',
-    address: '',
-    city: '',
-    state: '',
-    zip: '',
-    programmingLanguages: '',
-    technologies: '',
-    skills: '',
-    experience: '',
+    phoneNumber: '', 
     resume: null,
   });
   const [fileError, setFileError] = useState('');
@@ -85,18 +76,9 @@ const UserForm = () => {
   };
 
   const formFields = [
-    { name: 'firstName', label: '👤 First Name', type: 'text' },
-    { name: 'lastName', label: '👤 Last Name', type: 'text' },
+    { name: 'fullname', label: '👤 First Name', type: 'text' },
     { name: 'email', label: '📧 Email', type: 'email' },
     { name: 'phoneNumber', label: '📱 Phone Number', type: 'tel' },
-    { name: 'address', label: '🏠 Address', type: 'text' },
-    { name: 'city', label: '🌆 City', type: 'text' },
-    { name: 'state', label: '🗺️ State', type: 'text' },
-    { name: 'zip', label: '📍 Zip Code', type: 'text' },
-    { name: 'programmingLanguages', label: '💻 Programming Languages', type: 'text' },
-    { name: 'technologies', label: '⚡ Technologies', type: 'text' },
-    { name: 'skills', label: '🎯 Skills', type: 'text' },
-    { name: 'experience', label: '⭐ Experience', type: 'text' },
   ];
 
   const handleSubmit = async (e) => {
