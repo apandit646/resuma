@@ -3,7 +3,10 @@ import { PencilIcon, TrashIcon, EyeIcon, X } from "lucide-react";
 
 const HR = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const [isDetailsOpen, setIsDetailsOpen] = useState(false);
+  const [selectedHr, setSelectedHr] = useState(null);
   const [hrList, setHRList] = useState([]);
+  const [hrDetails, setHrDetails] = useState([]);
   const [formData, setFormData] = useState({
     companyName: '',
     hrName: '',
@@ -32,12 +35,36 @@ const HR = () => {
       });
 
       if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
-      
+
       const data = await response.json();
       setHRList(Array.isArray(data) ? data : data ? [data] : []);
     } catch (error) {
       console.error("Error fetching formats:", error.message);
       setHRList([]);
+    }
+  };
+
+  const fetchHrDetails = async (hrId) => {
+    try {
+      const token = localStorage.getItem("authToken");
+      const response = await fetch("http://localhost:8000/email/formats", {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+
+      if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
+      await localStorage.setItem("hr_ID", hrId)
+      const data = await response.json();
+      console.log(data);
+      setHrDetails(Array.isArray(data) ? data : [data]);
+      setIsDetailsOpen(true);
+    } catch (error) {
+      console.error("Error fetching HR details:", error.message);
+      setHrDetails([]);
     }
   };
 
@@ -49,7 +76,7 @@ const HR = () => {
       const url = formData._id
         ? `http://localhost:8000/hr/update/${formData._id}`
         : `http://localhost:8000/hr/create`;
-      
+
       const response = await fetch(url, {
         method: formData._id ? "PUT" : "POST",
         headers: {
@@ -60,7 +87,7 @@ const HR = () => {
       });
 
       if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-      
+
       setIsOpen(false);
       fetchData();
       setFormData({
@@ -88,7 +115,7 @@ const HR = () => {
       });
 
       if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-      
+
       fetchData();
     } catch (e) {
       alert(`Error deleting HR data: ${e.message}`);
@@ -100,14 +127,20 @@ const HR = () => {
     setIsOpen(true);
   };
 
-  const handleSelect = (id) => {
-    console.log("Selected HR with id:", id);
+  const handleSelect = (hr) => {
+    setSelectedHr(hr);
+    fetchHrDetails(hr._id);
   };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
   };
+  const handleFormatAction = (details) => {
+    console.log(details);
+    localStorage.setItem("formData", details._id);
+    // implement your action here
+  }
 
   return (
     <div className="w-full max-w-7xl mx-auto bg-white rounded-lg shadow-lg">
@@ -148,7 +181,7 @@ const HR = () => {
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
                         <button
-                          onClick={() => handleSelect(hr._id)}
+                          onClick={() => handleSelect(hr)}
                           className="p-1 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
                         >
                           <EyeIcon className="h-4 w-4" />
@@ -184,6 +217,7 @@ const HR = () => {
           </div>
         </div>
 
+        {/* Add/Edit HR Modal */}
         {isOpen && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center backdrop-blur-sm z-50">
             <div className="bg-white rounded-lg shadow-xl w-full max-w-md mx-4">
@@ -262,6 +296,82 @@ const HR = () => {
                   </button>
                 </div>
               </form>
+            </div>
+          </div>
+        )}
+
+        {/* HR Details Modal */}
+        {/* Previous code remains the same until the HR Details Modal section */}
+
+        {/* Update only the HR Details Modal content */}
+        {isDetailsOpen && (
+          <div className="fixed inset-0 flex items-center justify-center bg-black/50 backdrop-blur-sm z-50">
+            <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-xl w-full max-w-4xl mx-4 flex flex-col">
+
+              {/* 🔹 Header (Sticky) */}
+              <div className="flex items-center justify-between p-5 bg-gray-100 dark:bg-gray-800 border-b dark:border-gray-700 rounded-t-2xl">
+                <div>
+                  <h3 className="text-xl font-semibold text-gray-800 dark:text-white">Email Formats</h3>
+                  <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                    Viewing formats for <span className="font-medium">{selectedHr?.hrName}</span> from <span className="font-medium">{selectedHr?.companyName}</span>
+                  </p>
+                </div>
+                <button
+                  onClick={() => setIsDetailsOpen(false)}
+                  className="p-2 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-full transition"
+                >
+                  <X className="h-6 w-6" />
+                </button>
+              </div>
+
+              {/* 🔹 Scrollable Table */}
+              <div className="overflow-y-auto max-h-[70vh] p-5">
+                <table className="min-w-full border-collapse">
+                  {/* Table Header */}
+                  <thead className="sticky top-0 bg-gray-200 dark:bg-gray-800 text-gray-700 dark:text-gray-200">
+                    <tr>
+                      <th className="px-4 py-3 text-left text-sm font-medium">#</th>
+                      <th className="px-4 py-3 text-left text-sm font-medium">Email Format</th>
+                      <th className="px-4 py-3 text-left text-sm font-medium">Created</th>
+                      <th className="px-4 py-3 text-left text-sm font-medium">Updated</th>
+                      <th className="px-4 py-3 text-center text-sm font-medium">Actions</th>
+                    </tr>
+                  </thead>
+
+                  {/* Table Body */}
+                  <tbody>
+                    {hrDetails.map((detail, index) => (
+                      <tr key={detail._id} className="odd:bg-white even:bg-gray-50 dark:odd:bg-gray-900 dark:even:bg-gray-800">
+                        <td className="px-4 py-3 text-sm text-gray-700 dark:text-gray-300">{index + 1}</td>
+                        <td className="px-4 py-3 text-sm text-gray-800 dark:text-gray-200 break-words">{detail.formData}</td>
+                        <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-400">
+                          {new Date(detail.createdAt).toLocaleString()}
+                        </td>
+                        <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-400">
+                          {new Date(detail.updatedAt).toLocaleString()}
+                        </td>
+                        <td className="px-4 py-3 text-center">
+                          <button
+                            onClick={() => handleFormatAction(detail)}
+                            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 text-white font-medium rounded-lg shadow-md transition"
+                          >
+                            Select
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+
+                    {/* Show message if no data available */}
+                    {hrDetails.length === 0 && (
+                      <tr>
+                        <td colSpan="5" className="p-5 text-center text-gray-500 dark:text-gray-400">
+                          No email formats available
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
             </div>
           </div>
         )}

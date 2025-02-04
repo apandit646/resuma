@@ -6,7 +6,6 @@ const SideNavbar = () => {
   const [isOpen, setIsOpen] = useState(true);
   const navigate = useNavigate();
   const location = useLocation();
-  
 
   const menuItems = [
     { title: 'Home', icon: Home, path: '/home' },
@@ -15,7 +14,7 @@ const SideNavbar = () => {
     { title: 'Email Format', icon: Mail, path: '/format_email' },
     { title: 'HR', icon: HelpCircle, path: '/hr' },
     { title: 'Help', icon: HelpCircle, path: '/help' },
-    { title: 'Logout', icon: LogOut, path: '/logout'},
+    { title: 'Logout', icon: LogOut, path: '/logout' },
   ];
 
   const handleNavigation = (path) => {
@@ -24,24 +23,25 @@ const SideNavbar = () => {
   };
 
   return (
-    <div className="h-full">
+    <div className="h-full flex">
       {/* Sidebar */}
       <div
-        className={`h-full bg-gray-800 text-white transition-all duration-300 ease-in-out ${isOpen ? 'w-64' : 'w-0'
-          }`}
+        className={`h-full bg-black/50 backdrop-blur-lg text-white transition-all duration-300 ease-in-out ${
+          isOpen ? 'w-64' : 'w-0'
+        }`}
       >
         {/* Navigation Items */}
-        <nav className="mt-8">
+        <nav className="mt-8 space-y-2">
           {menuItems.map((item, index) => (
             <button
               key={index}
               onClick={() => handleNavigation(item.path)}
-              className={`w-full flex items-center px-6 py-3 text-gray-300 hover:bg-gray-700 
-                hover:text-white transition-colors duration-200 ${location.pathname === item.path ? 'bg-gray-700 text-white' : ''
-                }`}
+              className={`w-full flex items-center px-6 py-3 rounded-xl text-gray-200 hover:bg-gray-800 hover:text-white transition-all duration-300 shadow-md ${
+                location.pathname === item.path ? 'bg-gray-800 text-white' : ''
+              }`}
             >
-              <item.icon className="w-5 h-5" />
-              <span className="ml-3">{item.title}</span>
+              <item.icon className="w-6 h-6" />
+              <span className="ml-3 text-lg font-medium">{item.title}</span>
             </button>
           ))}
         </nav>
