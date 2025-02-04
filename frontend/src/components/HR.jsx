@@ -7,6 +7,8 @@ const HR = () => {
   const [selectedHr, setSelectedHr] = useState(null);
   const [hrList, setHRList] = useState([]);
   const [hrDetails, setHrDetails] = useState([]);
+  const [isSendModalOpen, setIsSendModalOpen] = useState(false);
+  const [selectedFormatData, setSelectedFormatData] = useState([]);
   const [formData, setFormData] = useState({
     companyName: '',
     hrName: '',
@@ -136,12 +138,46 @@ const HR = () => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
   };
-  const handleFormatAction = (details) => {
-    console.log(details);
-    localStorage.setItem("formData", details._id);
-    // implement your action here
-  }
 
+
+  //
+  const handleFormatAction = async (details) => {
+    console.log("Received details:", details);
+  
+    try {
+      const token = localStorage.getItem("authToken");
+  
+      const response = await fetch("http://localhost:8000/profile", {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+  
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+  
+      const data = await response.json();
+      console.log("HR Profile Data:", data);
+  
+      // Ensure the data is stored as an array
+      setSelectedFormatData(Array.isArray(data) ? data : [data]);
+      setIsSendModalOpen(true); // Open modal after data fetch
+  
+    } catch (e) {
+      alert(`Error fetching HR data: ${e.message}`);
+      setIsSendModalOpen(false);
+    }
+  };
+  
+  // sending mail data 
+  const handleSendMail = async (data) => {
+    console.log("Sending mail data...", data._id);
+    localStorage.setItem("ID_Mail", data._id);
+    window.location.reload();
+  };
   return (
     <div className="w-full max-w-7xl mx-auto bg-white rounded-lg shadow-lg">
       <div className="flex items-center justify-between p-6 border-b">
@@ -375,6 +411,79 @@ const HR = () => {
             </div>
           </div>
         )}
+        {isSendModalOpen && (
+      <div className="fixed inset-0 bg-black/50 flex items-center justify-center backdrop-blur-sm z-50">
+        <div className="bg-white rounded-lg shadow-xl w-full max-w-4xl mx-4">
+          {/* Modal Header */}
+          <div className="flex items-center justify-between p-4 border-b">
+            <h3 className="text-xl font-semibold">Send Resume Data</h3>
+            <button
+              onClick={() => setIsSendModalOpen(false)}
+              className="p-1 hover:bg-gray-100 rounded-lg transition-colors"
+            >
+              <X className="h-5 w-5" />
+            </button>
+          </div>
+
+          {/* Modal Content with Table Layout */}
+          <div className="p-4 overflow-y-auto max-h-[70vh]">
+            {selectedFormatData.length > 0 ? (
+              <table className="min-w-full border-collapse border border-gray-200">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="p-2 border border-gray-200">Full Name</th>
+                    <th className="p-2 border border-gray-200">Email</th>
+                    <th className="p-2 border border-gray-200">Created At</th>
+                    <th className="p-2 border border-gray-200">Resume URL</th>
+                    <th className="p-2 border border-gray-200">Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {selectedFormatData.map((hr, index) => (
+                    <tr key={index} className="border-t">
+                      <td className="p-2 border border-gray-200">{hr.fullname}</td>
+                      <td className="p-2 border border-gray-200">{hr.email}</td>
+                      <td className="p-2 border border-gray-200">{new Date(hr.createdAt).toLocaleString()}</td>
+                      <td className="p-2 border border-gray-200">
+                        <a
+                          href={hr.resume}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-blue-600 hover:underline"
+                        >
+                          View Resume
+                        </a>
+                      </td>
+                      <td className="p-2 border border-gray-200">
+                        <button
+                          onClick={() => handleSendMail(hr)}
+                          className="px-3 py-1 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+                        >
+                          Send
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            ) : (
+              <p className="text-center text-gray-500">No HR data available</p>
+            )}
+          </div>
+
+          {/* Modal Footer */}
+          <div className="flex justify-end gap-3 p-4 border-t">
+            <button
+              type="button"
+              onClick={() => setIsSendModalOpen(false)}
+              className="px-4 py-2 border rounded-lg hover:bg-gray-50 transition-colors"
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      </div>
+    )}
       </div>
     </div>
   );
