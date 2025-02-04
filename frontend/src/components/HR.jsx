@@ -1,6 +1,5 @@
-/* eslint-disable react-hooks/exhaustive-deps */
 import { useEffect, useState } from "react";
-import { PencilIcon, TrashIcon, EyeIcon } from "@heroicons/react/outline"; // Import icons correctly
+import { PencilIcon, TrashIcon, EyeIcon, X } from "lucide-react";
 
 const HR = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -14,7 +13,7 @@ const HR = () => {
 
   useEffect(() => {
     fetchData();
-  }, [setHRList]); // Add dependencies if needed
+  }, []);
 
   const fetchData = async () => {
     try {
@@ -32,62 +31,54 @@ const HR = () => {
         },
       });
 
-      if (!response.ok) {
-        throw new Error(`HTTP error! Status: ${response.status}`);
-      }
-
+      if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
+      
       const data = await response.json();
-     
-
-      if (Array.isArray(data)) {
-        setHRList(data);
-      } else if (data) {
-        setHRList([data]);
-      } else {
-        setHRList([]);
-      }
+      setHRList(Array.isArray(data) ? data : data ? [data] : []);
     } catch (error) {
       console.error("Error fetching formats:", error.message);
       setHRList([]);
     }
   };
 
-
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const token = localStorage.getItem('authToken'); // Get the user's authentication token from localStorage
+
     try {
-      // Implement your API call to save or update the HR data here
-      const response = await fetch(`http://localhost:8000/hr/create`, {
-        method: "POST",
+      const token = localStorage.getItem('authToken');
+      const url = formData._id
+        ? `http://localhost:8000/hr/update/${formData._id}`
+        : `http://localhost:8000/hr/create`;
+      
+      const response = await fetch(url, {
+        method: formData._id ? "PUT" : "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({ formData }),
       });
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      alert("HR data saved successfully!");
+
+      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+      
+      setIsOpen(false);
+      fetchData();
       setFormData({
         companyName: '',
         hrName: '',
         hrEmail: '',
         phone: '',
       });
-
     } catch (e) {
       alert(`Error saving HR data: ${e.message}`);
     }
-
   };
 
-  const handleDelete = async(id) => {
-    console.log(`Deleting ${id}`);
-    // Implement your API call to delete the HR data here
-    const token = localStorage.getItem('authToken'); // Get the user's authentication token from localStorage
+  const handleDelete = async (id) => {
+    if (!window.confirm('Are you sure you want to delete this HR record?')) return;
+
     try {
+      const token = localStorage.getItem('authToken');
       const response = await fetch(`http://localhost:8000/hr/delete/${id}`, {
         method: "DELETE",
         headers: {
@@ -95,183 +86,186 @@ const HR = () => {
           Authorization: `Bearer ${token}`,
         },
       });
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      alert("HR data deleted successfully!");
+
+      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+      
+      fetchData();
     } catch (e) {
       alert(`Error deleting HR data: ${e.message}`);
     }
-
-    // Remove the deleted HR from the list
-    setHRList(hrList.filter(hr => hr.id!== id));
-    setHRList(hrList.filter(hr => hr.id !== id));
-
   };
 
   const handleEdit = (hr) => {
     setFormData(hr);
-
     setIsOpen(true);
   };
 
   const handleSelect = (id) => {
-    console.log("Selected HR with id:", id);  // Implement your select logic here
+    console.log("Selected HR with id:", id);
   };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
+    setFormData(prev => ({ ...prev, [name]: value }));
   };
 
   return (
-    <div className="p-6">
-      {/* Header with Add Button */}
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">HR Management</h1>
+    <div className="w-full max-w-7xl mx-auto bg-white rounded-lg shadow-lg">
+      <div className="flex items-center justify-between p-6 border-b">
+        <h2 className="text-2xl font-bold text-gray-800">HR Management</h2>
         <button
           onClick={() => setIsOpen(true)}
-          className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
         >
           Add HR
         </button>
       </div>
 
-      {/* Grid */}
-      <div className="overflow-x-auto">
-        <table className="min-w-full bg-white border rounded-lg">
-          <thead className="bg-gray-50">
-            <tr>
-              <th className="px-6 py-3 text-left text-sm font-medium text-gray-500 uppercase tracking-wider">Company</th>
-              <th className="px-6 py-3 text-left text-sm font-medium text-gray-500 uppercase tracking-wider">HR Name</th>
-              <th className="px-6 py-3 text-left text-sm font-medium text-gray-500 uppercase tracking-wider">Email</th>
-              <th className="px-6 py-3 text-left text-sm font-medium text-gray-500 uppercase tracking-wider">Phone</th>
-              <th className="px-6 py-3 text-left text-sm font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-200">
-            {hrList.map((hr) => (
-              <tr key={hr._Id} className="hover:bg-gray-50">
-                <td className="px-6 py-4 whitespace-nowrap">{hr.companyName}</td>
-                <td className="px-6 py-4 whitespace-nowrap">{hr.hrName}</td>
-                <td className="px-6 py-4 whitespace-nowrap">{hr.hrEmail}</td>
-                <td className="px-6 py-4 whitespace-nowrap">{hr.phone}</td>
-                <td className="px-6 py-4 whitespace-nowrap flex space-x-3">
-                  <button
-                    onClick={() => handleSelect(hr.id)}
-                    className="text-blue-600 hover:text-blue-800"
-                  >
-                    <EyeIcon className="h-5 w-5" />
-                  </button>
-                  <button
-                    onClick={() => handleEdit(hr)}
-                    className="text-green-600 hover:text-green-800"
-                  >
-                    <PencilIcon className="h-5 w-5" />
-                  </button>
-                  <button
-                    onClick={() => handleDelete(hr._Id)}
-                    className="text-red-600 hover:text-red-800"
-                  >
-                    <TrashIcon className="h-5 w-5" />
-                  </button>
-                </td>
-              </tr>
-            ))}
-            {hrList.length === 0 && (
-              <tr>
-                <td colSpan="5" className="px-6 py-4 text-center text-gray-500">
-                  No HR records found. Click "Add HR" to add new records.
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
-
-      {/* Modal Form */}
-      {isOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-          <div className="bg-white p-6 rounded-lg w-96">
-            <div className="flex justify-between mb-4">
-              <h2 className="text-xl font-bold">{formData.id ? 'Edit' : 'Add'} HR Details</h2>
-              <button
-                onClick={() => setIsOpen(false)}
-                className="text-gray-500 hover:text-gray-700"
-              >
-
-              </button>
-            </div>
-
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div>
-                <label className="block mb-1">Company Name</label>
-                <input
-                  name="companyName"
-                  value={formData.companyName}
-                  onChange={handleChange}
-                  className="w-full border p-2 rounded"
-                  required
-                />
-              </div>
-
-              <div>
-                <label className="block mb-1">HR Name</label>
-                <input
-                  name="hrName"
-                  value={formData.hrName}
-                  onChange={handleChange}
-                  className="w-full border p-2 rounded"
-                  required
-                />
-              </div>
-
-              <div>
-                <label className="block mb-1">Email</label>
-                <input
-                  type="email"
-                  name="hrEmail"
-                  value={formData.hrEmail}
-                  onChange={handleChange}
-                  className="w-full border p-2 rounded"
-                  required
-                />
-              </div>
-
-              <div>
-                <label className="block mb-1">Phone</label>
-                <input
-                  type="tel"
-                  name="phone"
-                  value={formData.phone}
-                  onChange={handleChange}
-                  className="w-full border p-2 rounded"
-                  required
-                />
-              </div>
-
-              <div className="flex justify-end gap-2">
-                <button
-                  type="button"
-                  onClick={() => setIsOpen(false)}
-                  className="px-4 py-2 border rounded hover:bg-gray-100"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-                >
-                  Submit
-                </button>
-              </div>
-            </form>
+      <div className="p-6">
+        <div className="rounded-lg border shadow-sm">
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="bg-gray-50 border-b">
+                  <th className="px-6 py-4 text-left font-medium text-gray-600">Company</th>
+                  <th className="px-6 py-4 text-left font-medium text-gray-600">HR Name</th>
+                  <th className="px-6 py-4 text-left font-medium text-gray-600">Email</th>
+                  <th className="px-6 py-4 text-left font-medium text-gray-600">Phone</th>
+                  <th className="px-6 py-4 text-left font-medium text-gray-600">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {hrList.map((hr) => (
+                  <tr key={hr._id} className="border-b hover:bg-gray-50 transition-colors">
+                    <td className="px-6 py-4">
+                      <span className="px-2 py-1 text-sm font-medium bg-gray-100 text-gray-800 rounded-full">
+                        {hr.companyName}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 font-medium">{hr.hrName}</td>
+                    <td className="px-6 py-4 text-blue-600">{hr.hrEmail}</td>
+                    <td className="px-6 py-4">{hr.phone}</td>
+                    <td className="px-6 py-4">
+                      <div className="flex items-center gap-3">
+                        <button
+                          onClick={() => handleSelect(hr._id)}
+                          className="p-1 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                        >
+                          <EyeIcon className="h-4 w-4" />
+                        </button>
+                        <button
+                          onClick={() => handleEdit(hr)}
+                          className="p-1 text-green-600 hover:bg-green-50 rounded-lg transition-colors"
+                        >
+                          <PencilIcon className="h-4 w-4" />
+                        </button>
+                        <button
+                          onClick={() => handleDelete(hr._id)}
+                          className="p-1 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                        >
+                          <TrashIcon className="h-4 w-4" />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+                {hrList.length === 0 && (
+                  <tr>
+                    <td colSpan="5" className="px-6 py-8 text-center text-gray-500">
+                      <div className="flex flex-col items-center gap-2">
+                        <p className="text-lg">No HR records found</p>
+                        <p className="text-sm">Click Add HR to create a new record</p>
+                      </div>
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
           </div>
         </div>
-      )}
+
+        {isOpen && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center backdrop-blur-sm z-50">
+            <div className="bg-white rounded-lg shadow-xl w-full max-w-md mx-4">
+              <div className="flex items-center justify-between p-6 border-b">
+                <h3 className="text-xl font-semibold">
+                  {formData._id ? 'Edit' : 'Add'} HR Details
+                </h3>
+                <button
+                  onClick={() => setIsOpen(false)}
+                  className="p-1 hover:bg-gray-100 rounded-lg transition-colors"
+                >
+                  <X className="h-5 w-5" />
+                </button>
+              </div>
+
+              <form onSubmit={handleSubmit} className="p-6 space-y-4">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Company Name</label>
+                  <input
+                    name="companyName"
+                    value={formData.companyName}
+                    onChange={handleChange}
+                    className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    required
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">HR Name</label>
+                  <input
+                    name="hrName"
+                    value={formData.hrName}
+                    onChange={handleChange}
+                    className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    required
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Email</label>
+                  <input
+                    type="email"
+                    name="hrEmail"
+                    value={formData.hrEmail}
+                    onChange={handleChange}
+                    className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    required
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Phone</label>
+                  <input
+                    type="tel"
+                    name="phone"
+                    value={formData.phone}
+                    onChange={handleChange}
+                    className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    required
+                  />
+                </div>
+
+                <div className="flex justify-end gap-3 pt-4">
+                  <button
+                    type="button"
+                    onClick={() => setIsOpen(false)}
+                    className="px-4 py-2 border rounded-lg hover:bg-gray-50 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                  >
+                    {formData._id ? 'Update' : 'Create'}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 };
