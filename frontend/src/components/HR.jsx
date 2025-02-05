@@ -142,7 +142,9 @@ const HR = () => {
 
   //
   const handleFormatAction = async (details) => {
-    console.log("Received details:", details);
+    console.log("Received details:", details._id);
+    // Add your logic here to format the data as needed
+    localStorage.setItem("format_id", details._id);
   
     try {
       const token = localStorage.getItem("authToken");
@@ -174,10 +176,36 @@ const HR = () => {
   
   // sending mail data 
   const handleSendMail = async (data) => {
-    console.log("Sending mail data...", data._id);
-    localStorage.setItem("ID_Mail", data._id);
-    window.location.reload();
-  };
+    console.log("Sending mail data...", data);
+    console.log(data);
+    
+    try {
+      const token = localStorage.getItem("authToken");
+      const hr_id = localStorage.getItem('hr_ID');
+      const form_id = localStorage.getItem('format_id');
+
+      const response = await fetch("http://localhost:8000/mail/send", {
+          method: "POST",
+          headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ data , hr_id,form_id}), // Ensure data is properly formatted
+      });
+
+      if (!response.ok) {
+          throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+
+      const responseData = await response.json(); // Renamed to avoid conflict
+      console.log("Mail sent successfully:", responseData);
+      alert("Mail sent successfully:");
+  } catch (error) {
+      console.error("Error sending mail:", error); // Log the error
+  }
+
+  // window.location.reload(); // Consider removing this unless absolutely necessary
+};
   return (
     <div className="w-full max-w-7xl mx-auto bg-white rounded-lg shadow-lg">
       <div className="flex items-center justify-between p-6 border-b">

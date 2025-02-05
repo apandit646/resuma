@@ -24,12 +24,14 @@ const userRouter = require('./routes/userRouter');
 const profileRouter = require('./routes/profileRouter');
 const emailRouter = require('./routes/emailFormRouters');
 const hrDataRouter= require('./routes/hrDataRouter');
+const mailSender = require('./routes/mailSender');
 
 // Routes
 app.use(userRouter);
 app.use(profileRouter);
 app.use(emailRouter);
 app.use(hrDataRouter);
+app.use(mailSender);
 
 // Connect to MongoDB
 mongoose.connect(process.env.URL, { useNewUrlParser: true, useUnifiedTopology: true })
